@@ -1,0 +1,11 @@
+[phases.setup]
+nixPkgs = ["nodejs_20"]
+
+[phases.install]
+cmds = ["npm install -g pnpm", "pnpm install -w --shamefully-hoist"]
+
+[phases.build]
+cmds = ["pnpm tsx build.ts"]
+
+[start]
+cmd = "node dist/index.cjs"

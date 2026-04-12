@@ -1,0 +1,429 @@
+openapi: 3.1.0
+info:
+  title: Api
+  version: 0.1.0
+  description: E-Nose IoT System API
+servers:
+  - url: /api
+    description: Base API path
+tags:
+  - name: health
+    description: Health operations
+  - name: respondents
+    description: Respondent data management
+  - name: sessions
+    description: Sampling session management
+  - name: iot
+    description: IoT device communication
+paths:
+  /healthz:
+    get:
+      operationId: healthCheck
+      tags: [health]
+      summary: Health check
+      description: Returns server health status
+      responses:
+        "200":
+          description: Healthy
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+
+  /respondents:
+    get:
+      operationId: listRespondents
+      tags: [respondents]
+      summary: List all respondents
+      responses:
+        "200":
+          description: List of respondents
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Respondent"
+    post:
+      operationId: createRespondent
+      tags: [respondents]
+      summary: Create a new respondent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateRespondentInput"
+      responses:
+        "201":
+          description: Respondent created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Respondent"
+
+  /respondents/{id}:
+    get:
+      operationId: getRespondent
+      tags: [respondents]
+      summary: Get a respondent by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Respondent found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespondentWithSessions"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /sessions:
+    get:
+      operationId: listSessions
+      tags: [sessions]
+      summary: List all sessions with respondent info
+      responses:
+        "200":
+          description: List of sessions
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/SessionWithRespondent"
+    post:
+      operationId: createSession
+      tags: [sessions]
+      summary: Create a new sampling session for a respondent
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateSessionInput"
+      responses:
+        "201":
+          description: Session created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+
+  /sessions/{id}:
+    get:
+      operationId: getSession
+      tags: [sessions]
+      summary: Get a session by ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Session found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        "404":
+          description: Not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /sessions/{id}/sensor-data:
+    post:
+      operationId: saveSensorData
+      tags: [sessions]
+      summary: Save sensor data for a session (called by Pico)
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SensorDataInput"
+      responses:
+        "200":
+          description: Sensor data saved
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        "404":
+          description: Session not found
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+
+  /iot/command:
+    get:
+      operationId: getPendingCommand
+      tags: [iot]
+      summary: Get pending command for Pico device (polled by Pico)
+      responses:
+        "200":
+          description: Current command for device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceCommand"
+
+  /iot/status:
+    post:
+      operationId: updateDeviceStatus
+      tags: [iot]
+      summary: Update device status (sent by Pico)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/DeviceStatusInput"
+      responses:
+        "200":
+          description: Status updated
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceStatus"
+
+    get:
+      operationId: getDeviceStatus
+      tags: [iot]
+      summary: Get current device status
+      responses:
+        "200":
+          description: Device status
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceStatus"
+
+components:
+  schemas:
+    HealthStatus:
+      type: object
+      properties:
+        status:
+          type: string
+      required:
+        - status
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+      required:
+        - error
+
+    Respondent:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        age:
+          type: integer
+        gender:
+          type: string
+          enum: [male, female]
+        status:
+          type: string
+          enum: [diabetes, non-diabetes]
+        createdAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - age
+        - gender
+        - status
+        - createdAt
+
+    CreateRespondentInput:
+      type: object
+      properties:
+        name:
+          type: string
+        age:
+          type: integer
+        gender:
+          type: string
+          enum: [male, female]
+        status:
+          type: string
+          enum: [diabetes, non-diabetes]
+      required:
+        - name
+        - age
+        - gender
+        - status
+
+    Session:
+      type: object
+      properties:
+        id:
+          type: integer
+        respondentId:
+          type: integer
+        sessionNumber:
+          type: integer
+        state:
+          type: string
+          enum: [pending, purging, ready, sampling, completed, error]
+        mq3AlcoholPpm:
+          type: number
+          nullable: true
+        mq4MethanePpm:
+          type: number
+          nullable: true
+        mq138AcetonePpm:
+          type: number
+          nullable: true
+        tgs2602Voc:
+          type: number
+          nullable: true
+        samplesCount:
+          type: integer
+          nullable: true
+        createdAt:
+          type: string
+          format: date-time
+        completedAt:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+        - id
+        - respondentId
+        - sessionNumber
+        - state
+        - createdAt
+
+    SessionWithRespondent:
+      allOf:
+        - $ref: "#/components/schemas/Session"
+        - type: object
+          properties:
+            respondent:
+              $ref: "#/components/schemas/Respondent"
+          required:
+            - respondent
+
+    RespondentWithSessions:
+      allOf:
+        - $ref: "#/components/schemas/Respondent"
+        - type: object
+          properties:
+            sessions:
+              type: array
+              items:
+                $ref: "#/components/schemas/Session"
+          required:
+            - sessions
+
+    CreateSessionInput:
+      type: object
+      properties:
+        respondentId:
+          type: integer
+      required:
+        - respondentId
+
+    SensorDataInput:
+      type: object
+      properties:
+        mq3AlcoholPpm:
+          type: number
+        mq4MethanePpm:
+          type: number
+        mq138AcetonePpm:
+          type: number
+        tgs2602Voc:
+          type: number
+        samplesCount:
+          type: integer
+      required:
+        - mq3AlcoholPpm
+        - mq4MethanePpm
+        - mq138AcetonePpm
+        - tgs2602Voc
+        - samplesCount
+
+    DeviceCommand:
+      type: object
+      properties:
+        command:
+          type: string
+          enum: [idle, start_session, purge, sample, stop]
+        sessionId:
+          type: integer
+          nullable: true
+        purgeDuration:
+          type: integer
+          nullable: true
+        sampleDuration:
+          type: integer
+          nullable: true
+      required:
+        - command
+
+    DeviceStatusInput:
+      type: object
+      properties:
+        state:
+          type: string
+          enum: [idle, purging, ready, sampling, completed, error]
+        sessionId:
+          type: integer
+          nullable: true
+        message:
+          type: string
+          nullable: true
+      required:
+        - state
+
+    DeviceStatus:
+      type: object
+      properties:
+        state:
+          type: string
+          enum: [idle, purging, ready, sampling, completed, error]
+        sessionId:
+          type: integer
+          nullable: true
+        message:
+          type: string
+          nullable: true
+        lastSeen:
+          type: string
+          format: date-time
+          nullable: true
+        isOnline:
+          type: boolean
+      required:
+        - state
+        - isOnline

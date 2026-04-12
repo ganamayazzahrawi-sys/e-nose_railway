@@ -1,0 +1,20 @@
+packages:
+  "framer-motion": "Smooth page transitions and component animations for premium feel"
+  "recharts": "Visualizing sensor data (MQ3, MQ4, MQ138, TGS2602) in beautiful charts"
+  "date-fns": "Formatting session dates and timestamps"
+  "@hookform/resolvers": "Zod validation resolver for React Hook Form"
+  "react-hook-form": "Form state management"
+  "zod": "Schema validation for forms"
+
+images:
+  - path: "artifacts/e-nose/public/images/logo.png"
+    description: "A clean, modern, minimalist logo icon for a medical IoT device called E-Nose, featuring abstract breath/air waves intersecting with a subtle medical cross or tech node. Deep blue and teal colors on transparent background."
+    aspect_ratio: "1:1"
+  - path: "artifacts/e-nose/public/images/hero-abstract.png"
+    description: "Abstract modern medical technology background with soft glowing cyan and blue data waves, depth of field, 3d render, premium clean scientific aesthetic"
+    aspect_ratio: "16:9"
+
+notes:
+  - Using generated React Query hooks from @workspace/api-client-react
+  - Device status and active sessions require polling
+  - Ensure wouter Links don't wrap <a> tags

@@ -275,6 +275,10 @@ export async function customFetch<T = unknown>(
   input: RequestInfo | URL,
   options: CustomFetchOptions = {},
 ): Promise<T> {
+  const baseUrl = (typeof import.meta !== "undefined" && (import.meta as any).env?.VITE_API_URL) ?? "";
+  if (typeof input === "string" && input.startsWith("/")) {
+    input = `${baseUrl}${input}`;
+  }
   const { responseType = "auto", headers: headersInit, ...init } = options;
 
   const method = resolveMethod(input, init.method);
